@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sykil-security-analyzer"
+version = "1.0.0"
+description = "SYKIL : Security Analyzer - Smashing Vulnerabilities, Securing Code"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Anas Fanu", email = "anasfanu@example.com"}
+]
+keywords = [
+    "security", "scanner", "vulnerability", "sast", 
+    "code-analysis", "sykil", "auto-fix"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+# Entry point untuk command CLI
+[project.scripts]
+sykil = "sykil_analyzer.cli:main"
+
+# Include file data (rules.json, manual_fixes.json)
+[tool.setuptools.package-data]
+"sykil_analyzer.data" = ["*.json"]
+"sykil_analyzer.templates" = ["*.html"]
+
+# Include semua package
+[tool.setuptools.packages.find]
+include = ["sykil_analyzer*"]
+
+[project.urls]
+Homepage = "https://github.com/anasfanu/sykil-security-analyzer"
+Repository = "https://github.com/anasfanu/sykil-security-analyzer"
+Issues = "https://github.com/anasfanu/sykil-security-analyzer/issues"
+Documentation = "https://github.com/anasfanu/sykil-security-analyzer#readme"

@@ -95,11 +95,11 @@
       "auto_fixable": true,
       "fix_description": "Ganti rand()/mt_rand() dengan random_int()"
     },
-    {
+     {
       "id": "SEC-011",
       "severity": "LOW",
       "kategori": "Debug Functions",
-      "pattern": "(?i)\\b(var_dump|print_r|debug_print_backtrace|dd)\\s*\\(",
+      "pattern": "(?i)\\b(var_dump|print_r|debug_print_backtrace|dd)\\s*\\(|(?<!\\.)\\bdump\\s*\\(",
       "info": "Fungsi debugging tertinggal di kode production.",
       "solusi": "Hapus semua fungsi debug sebelum deploy ke production.",
       "auto_fixable": true,
@@ -290,6 +290,218 @@
       "auto_fixable": true,
       "fix_description": "Ganti http:// dengan https://"
     },
+    {
+  "id": "SEC-031",
+  "severity": "HIGH",
+  "kategori": "Debug Mode Enabled",
+  "pattern": "(?i)(debug\\s*[=:]\\s*(true|True|1)|APP_DEBUG\\s*=\\s*true|NODE_ENV\\s*=\\s*development)",
+  "info": "Debug mode aktif di production. Bisa bocorkan informasi sensitif.",
+  "solusi": "Set debug = false di production. Gunakan environment variable.",
+  "auto_fixable": true,
+  "fix_description": "Set debug mode ke false"
+},
+    {
+  "id": "SEC-032",
+  "severity": "LOW",
+  "kategori": "Debug Print Statements",
+  "pattern": "(?i)\\b(print|echo)\\s*\\(?\\s*['\"]?(debug|test|temp|tmp)",
+  "info": "Print statement untuk debug tertinggal di production.",
+  "solusi": "Hapus semua print/echo statement yang untuk debug.",
+  "auto_fixable": true,
+  "fix_description": "Hapus debug print statement"
+},
+{
+  "id": "SEC-033",
+  "severity": "MEDIUM",
+  "kategori": "Debugger Statement",
+  "pattern": "(?i)^\\s*debugger\\s*;",
+  "info": "Debugger statement tertinggal di production.",
+  "solusi": "Hapus debugger statement sebelum deploy.",
+  "auto_fixable": true,
+  "fix_description": "Hapus debugger statement"
+},
+    {
+  "id": "SEC-034",
+  "severity": "CRITICAL",
+  "kategori": "Prototype Pollution",
+  "pattern": "(?i)(\\[\\s*['\"]__proto__['\"]\\s*\\]|\\[\\s*['\"]constructor['\"]\\s*\\]\\s*\\[\\s*['\"]prototype['\"]\\s*\\]|Object\\.assign\\s*\\(\\s*\\w+\\s*,\\s*\\$_?(GET|POST|REQUEST|body|query))",
+  "info": "Prototype pollution memungkinkan attacker memodifikasi prototype object JavaScript.",
+  "solusi": "Gunakan Map atau Object.create(null). Validasi key sebelum assign. Freeze Object.prototype.",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-035",
+  "severity": "CRITICAL",
+  "kategori": "Server-Side Template Injection",
+  "pattern": "(?i)(render_template_string|Template\\s*\\(|\\.render\\s*\\(\\s*\\$_(GET|POST|REQUEST)|\\.format\\s*\\(\\s*\\*\\*\\$_(GET|POST|REQUEST))",
+  "info": "User input langsung dirender sebagai template. Bisa menyebabkan RCE.",
+  "solusi": "Gunakan template engine dengan sandbox. Jangan render input user sebagai template.",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-036",
+  "severity": "HIGH",
+  "kategori": "NoSQL Injection",
+  "pattern": "(?i)(\\.find\\s*\\(\\s*\\{[^}]*\\$_(GET|POST|REQUEST)|\\.findOne\\s*\\(\\s*\\{[^}]*\\$_(GET|POST|REQUEST)|\\.where\\s*\\(\\s*\\$_(GET|POST|REQUEST))",
+  "info": "Input user langsung digunakan di query NoSQL (MongoDB). Bisa bypass authentication.",
+  "solusi": "Validasi tipe data. Gunakan $eq operator. Sanitasi input sebelum query.",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-037",
+  "severity": "HIGH",
+  "kategori": "CRLF Injection",
+  "pattern": "(?i)(header\\s*\\(\\s*['\"][^'\"]*\\$[\\w\\->]+|response\\.setHeader\\s*\\(\\s*[^,]+,\\s*\\$_(GET|POST|REQUEST))",
+  "info": "Input user disisipkan ke HTTP header. Bisa menyebabkan header injection atau response splitting.",
+  "solusi": "Sanitasi input: hapus \\r\\n dari input user sebelum digunakan di header.",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-038",
+  "severity": "HIGH",
+  "kategori": "Zip Slip (Path Traversal in Archive)",
+  "pattern": "(?i)(ZipArchive|zipfile\\.ZipFile|extract\\s*\\(|extractTo)\\s*\\((?!.*realpath)(?!.*basename)",
+  "info": "Ekstraksi archive tanpa validasi path. File bisa ditulis di luar direktori target.",
+  "solusi": "Validasi path hasil ekstraksi dengan realpath(). Pastikan tidak ada '../'.",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-039",
+  "severity": "HIGH",
+  "kategori": "LDAP Injection",
+  "pattern": "(?i)(ldap_search|ldap_bind)\\s*\\([^)]*\\$[\\w\\->]+",
+  "info": "Input user langsung digunakan di query LDAP. Bisa bypass authentication.",
+  "solusi": "Escape karakter khusus LDAP: \\* \\( \\) \\0 \\\\ dengan ldap_escape().",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-040",
+  "severity": "HIGH",
+  "kategori": "Insecure JWT Handling",
+  "pattern": "(?i)(jwt\\.decode\\s*\\([^,)]+\\s*\\)|verify\\s*=\\s*False|algorithms\\s*=\\s*\\[\\s*['\"]none['\"])",
+  "info": "JWT di-decode tanpa verifikasi signature atau menggunakan algorithm 'none'.",
+  "solusi": "Selalu verifikasi signature. Jangan izinkan algorithm 'none'. Gunakan library yang aman.",
+  "auto_fixable": false
+},
+{
+  "id": "SEC-041",
+  "severity": "MEDIUM",
+  "kategori": "Log Injection",
+  "pattern": "(?i)(logger\\.(info|debug|warning|error)\\s*\\(\\s*\\$_(GET|POST|REQUEST)|logging\\.(info|debug)\\s*\\(\\s*\\$_(GET|POST|REQUEST))",
+  "info": "Input user langsung ditulis ke log. Bisa menyebabkan log forging atau log injection.",
+  "solusi": "Sanitasi input: hapus \\r\\n dari input user sebelum logging.",
+  "auto_fixable": false
+}, 
+    {
+  "id": "SEC-042",
+  "severity": "MEDIUM",
+  "kategori": "Insecure WebSocket",
+  "pattern": "(?i)(new\\s+WebSocket\\s*\\(\\s*['\"]ws://|ws://(?!localhost|127\\.0\\.0\\.1))",
+  "info": "WebSocket menggunakan ws:// (tidak terenkripsi). Data bisa di-intercept.",
+  "solusi": "Selalu gunakan wss:// (WebSocket Secure) di production.",
+  "auto_fixable": true,
+  "fix_description": "Ganti ws:// dengan wss://"
+},
+    {
+  "id": "SEC-043",
+  "severity": "CRITICAL",
+  "kategori": "Unsafe YAML Deserialization",
+  "pattern": "(?i)yaml\\.load\\s*\\([^)]*\\)(?!.*Loader\\s*=\\s*(Safe|CSafe)Loader)(?!.*safe_load)",
+  "info": "yaml.load() tanpa SafeLoader memungkinkan arbitrary code execution.",
+  "solusi": "Gunakan yaml.safe_load() atau yaml.load(data, Loader=yaml.SafeLoader).",
+  "auto_fixable": true,
+  "fix_description": "Ganti yaml.load() dengan yaml.safe_load()"
+},
+    {
+  "id": "SEC-044",
+  "severity": "CRITICAL",
+  "kategori": "Subprocess Shell Injection",
+  "pattern": "(?i)subprocess\\.(call|run|Popen|check_output|check_call)\\s*\\([^)]*shell\\s*=\\s*True",
+  "info": "subprocess dengan shell=True memungkinkan command injection.",
+  "solusi": "Hindari shell=True. Gunakan list argument: subprocess.run(['cmd', 'arg']).",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-045",
+  "severity": "CRITICAL",
+  "kategori": "Server-Side Template Injection",
+  "pattern": "(?i)(render_template_string|Template\\s*\\(|from_string)\\s*\\(\\s*(f['\"]|.*\\+.*\\$|.*format\\s*\\()",
+  "info": "User input dirender sebagai template Jinja2. Bisa menyebabkan RCE.",
+  "solusi": "Gunakan render_template() dengan file template. Jangan render input user sebagai template.",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-046",
+  "severity": "CRITICAL",
+  "kategori": "Python Code Injection",
+  "pattern": "(?i)\\b(exec|compile|__import__)\\s*\\(\\s*(input|request\\.|sys\\.argv|os\\.environ)",
+  "info": "Fungsi eksekusi kode Python dengan input user. RCE vulnerability.",
+  "solusi": "Jangan pernah gunakan exec/compile dengan input user. Gunakan AST atau parser aman.",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-047",
+  "severity": "CRITICAL",
+  "kategori": "Insecure Python Deserialization",
+  "pattern": "(?i)(pickle\\.loads?|marshal\\.loads?|shelve\\.open|dill\\.loads?)\\s*\\(\\s*(request\\.|input|sys\\.argv|os\\.environ|\\$_(GET|POST|REQUEST))",
+  "info": "Deserialisasi data dari input user. Bisa menyebabkan RCE.",
+  "solusi": "Hindari pickle/marshal dengan input user. Gunakan JSON dengan validasi ketat.",
+  "auto_fixable": false
+},
+{
+  "id": "SEC-048",
+  "severity": "HIGH",
+  "kategori": "Insecure postMessage",
+  "pattern": "(?i)addEventListener\\s*\\(\\s*['\"]message['\"][^}]*\\}(?!.*origin)(?!.*event\\.origin)",
+  "info": "Message event listener tanpa validasi origin. Bisa menyebabkan XSS.",
+  "solusi": "Selalu validasi event.origin sebelum memproses data. Gunakan whitelist domain.",
+  "auto_fixable": false
+},
+{
+  "id": "SEC-049",
+  "severity": "HIGH",
+  "kategori": "DOM-based Open Redirect",
+  "pattern": "(?i)(location\\.href|location\\.assign|location\\.replace|window\\.open)\\s*=\\s*(location\\.search|location\\.hash|document\\.URL|document\\.referrer|\\$_?(GET|POST|REQUEST)|urlParams)",
+  "info": "Redirect dengan input dari URL. Bisa digunakan untuk phishing.",
+  "solusi": "Whitelist domain yang diizinkan. Validasi URL sebelum redirect.",
+  "auto_fixable": false
+},
+{
+  "id": "SEC-050",
+  "severity": "HIGH",
+  "kategori": "JavaScript Code Injection",
+  "pattern": "(?i)(setTimeout|setInterval)\\s*\\(\\s*[^,\\)]*[\\+\\.]\\s*(location|document|window|request|params)",
+  "info": "setTimeout/setInterval dengan string dinamis dari user. Code injection.",
+  "solusi": "Gunakan function reference, bukan string. setTimeout(myFunc, 1000).",
+  "auto_fixable": false
+},
+{
+  "id": "SEC-051",
+  "severity": "HIGH",
+  "kategori": "React XSS",
+  "pattern": "(?i)dangerouslySetInnerHTML\\s*=\\s*\\{\\s*\\{\\s*__html\\s*:\\s*[^}]*(props|state|params|query|request|user)",
+  "info": "React component render HTML dari input user. XSS vulnerability.",
+  "solusi": "Sanitize input dengan DOMPurify sebelum render. Hindari dangerouslySetInnerHTML.",
+  "auto_fixable": false
+},
+    {
+  "id": "SEC-052",
+  "severity": "HIGH",
+  "kategori": "jQuery XSS",
+  "pattern": "(?i)\\$\\s*\\(\\s*['\"][^'\"]*['\"]\\s*\\)\\s*\\.html\\s*\\(\\s*(\\$|document\\.|location\\.|request|params|user)",
+  "info": "jQuery .html() dengan input user. XSS vulnerability.",
+  "solusi": "Gunakan .text() untuk konten teks. Sanitize input sebelum .html().",
+  "auto_fixable": false
+},
+{
+  "id": "SEC-053",
+  "severity": "HIGH",
+  "kategori": "Exposed Sensitive Files",
+  "pattern": "(?i)(route|path|url|href|src|action)\\s*[=:(]\\s*['\"][^'\"]*\\.(env|git|htpasswd|pem|key|sql)['\"]",
+  "info": "File sensitif terexpose melalui URL/path/route.",
+  "solusi": "Pindahkan file sensitif di luar web root. Tambahkan ke .gitignore. Set permission ketat.",
+  "auto_fixable": false
+},
     {
       "id": "CVE-2026-111497",
       "severity": "CRITICAL",

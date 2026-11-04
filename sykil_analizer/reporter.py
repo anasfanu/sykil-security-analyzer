@@ -1,8 +1,18 @@
+"""
+SYKIL Reporter Module
+Mengelola output laporan (console, JSON, HTML)
+"""
+
 import json
 import os
 from datetime import datetime
 from typing import List, Dict
+from pathlib import Path
+from pathlib import Path
 
+def _get_data_path(filename: str) -> Path:
+    """Dapatkan path absolut ke file data dalam package"""
+    return Path(__file__).parent / 'data' / filename
 # ANSI Colors
 COLORS = {
     'GREEN': "\033[92m",
@@ -13,6 +23,16 @@ COLORS = {
     'MAGENTA': "\033[95m",
     'RESET': "\033[0m"
 }
+
+
+def _get_output_dir() -> Path:
+    """Lazy load output directory dari config"""
+    try:
+        from config import get_output_dir
+        return get_output_dir()
+    except ImportError:
+        return Path("C:/Sykil_Security_Analyzer/output")
+
 
 class Reporter:
     @staticmethod
@@ -58,15 +78,26 @@ class Reporter:
         print(f"Total Masalah        : {len(issues)}")
         
         if critical_count > 0:
-            print(f"Celaha CRITICAL      : {COLORS['RED']}{critical_count} Ditemukan!{COLORS['RESET']}")
+            print(f"Celah CRITICAL       : {COLORS['RED']}{critical_count} Ditemukan!{COLORS['RESET']}")
     
     @staticmethod
     def display_manual_fixes(issues: List[Dict]):
         """Tampilkan panduan manual untuk issues yang tidak bisa di-fix otomatis"""
         
-        # Load manual fixes dari JSON
-        manual_fixes_file = "manual_fixes.json"
-        if not os.path.exists(manual_fixes_file):
+        # Cari manual_fixes.json di beberapa lokasi
+        possible_paths = [
+            Path("manual_fixes.json"),
+            Path("C:/Sykil_Security_Analyzer/manual_fixes.json"),
+            _get_data_path("manual_fixes.json"),  # ⭐ Dalam package
+        ]
+        
+        manual_fixes_file = None
+        for path in possible_paths:
+            if path.exists():
+                manual_fixes_file = path
+                break
+        
+        if not manual_fixes_file:
             return
         
         try:
@@ -109,7 +140,6 @@ class Reporter:
             print(f"  {COLORS['YELLOW']}Deskripsi:{COLORS['RESET']} {fix_info['description']}")
             print(f"  {COLORS['YELLOW']}Jumlah ditemukan:{COLORS['RESET']} {len(rule_issues)}")
             
-            # Tampilkan contoh
             if fix_info.get('examples'):
                 example = fix_info['examples'][0]
                 print(f"\n  {COLORS['GREEN']}Contoh Perbaikan:{COLORS['RESET']}")
@@ -124,7 +154,6 @@ class Reporter:
                 for i, step in enumerate(example['steps'], 1):
                     print(f"    {i}. {step}")
             
-            # Tampilkan referensi
             if fix_info.get('references'):
                 print(f"\n  {COLORS['BLUE']}Referensi:{COLORS['RESET']}")
                 for ref in fix_info['references']:
@@ -133,13 +162,19 @@ class Reporter:
             print(f"\n{'-'*70}\n")
     
     @staticmethod
-    def export_json(issues: List[Dict], total_files: int, target_dir: str, output_dir: str = "output"):
+    def export_json(issues: List[Dict], total_files: int, target_dir: str, output_dir: str = None):
         """Export ke JSON dengan target_dir"""
-        os.makedirs(output_dir, exist_ok=True)
+        # Gunakan output_dir dari config jika tidak disediakan
+        if output_dir is None:
+            out_path = _get_output_dir()
+        else:
+            out_path = Path(output_dir)
+        
+        out_path.mkdir(parents=True, exist_ok=True)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"sykil_report_{timestamp}.json"
-        filepath = os.path.join(output_dir, filename)
+        filepath = out_path / filename
         
         report = {
             'tool': 'SYKIL : Security Analyzer',
@@ -156,27 +191,39 @@ class Reporter:
             json.dump(report, f, indent=2, ensure_ascii=False)
         
         print(f"\n{COLORS['GREEN']}[✓] Laporan JSON disimpan: {filepath}{COLORS['RESET']}")
-        return filepath
+        return str(filepath)
     
     @staticmethod
-    def export_html(issues: List[Dict], total_files: int, output_dir: str = "output"):
+    def export_html(issues: List[Dict], total_files: int, output_dir: str = None):
         """Export ke HTML"""
-        os.makedirs(output_dir, exist_ok=True)
+        if output_dir is None:
+            out_path = _get_output_dir()
+        else:
+            out_path = Path(output_dir)
+        
+        out_path.mkdir(parents=True, exist_ok=True)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"sykil_report_{timestamp}.html"
-        filepath = os.path.join(output_dir, filename)
+        filepath = out_path / filename
         
         # Load manual fixes untuk ditampilkan di HTML
         manual_fixes = {}
-        manual_fixes_file = "manual_fixes.json"
-        if os.path.exists(manual_fixes_file):
-            try:
-                with open(manual_fixes_file, 'r', encoding='utf-8') as f:
-                    manual_fixes_data = json.load(f)
-                    manual_fixes = {fix['rule_id']: fix for fix in manual_fixes_data.get('manual_fixes', [])}
-            except:
-                pass
+        possible_paths = [
+            Path("manual_fixes.json"),
+            Path("C:/Sykil_Security_Analyzer/manual_fixes.json"),
+            _get_data_path("manual_fixes.json"),  # ⭐ Dalam package
+        ]
+        
+        for path in possible_paths:
+            if path.exists():
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        manual_fixes_data = json.load(f)
+                        manual_fixes = {fix['rule_id']: fix for fix in manual_fixes_data.get('manual_fixes', [])}
+                    break
+                except Exception:
+                    pass
         
         html_content = f"""<!DOCTYPE html>
 <html lang="id">
@@ -208,9 +255,6 @@ class Reporter:
         .manual-fix {{ background: #fff; border-left: 4px solid #3498db; padding: 20px; margin: 20px 0; border-radius: 4px; }}
         .manual-fix h3 {{ color: #2c3e50; margin-bottom: 10px; }}
         .manual-fix h4 {{ color: #34495e; margin-top: 15px; margin-bottom: 10px; }}
-        .manual-fix ol {{ margin-left: 20px; }}
-        .manual-fix ul {{ margin-left: 20px; }}
-        .manual-fix a {{ color: #3498db; }}
         .footer {{ text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #95a5a6; font-size: 0.9em; }}
     </style>
 </head>
@@ -226,7 +270,7 @@ class Reporter:
             <h2>📊 Ringkasan</h2>
             <p><strong>Total File Diperiksa:</strong> {total_files}</p>
             <p><strong>Total Masalah Ditemukan:</strong> {len(issues)}</p>
-            <p><strong>Celaha CRITICAL:</strong> <span style="color: #c0392b; font-weight: bold;">{sum(1 for i in issues if i['severity'] == 'CRITICAL')}</span></p>
+            <p><strong>Celah CRITICAL:</strong> <span style="color: #c0392b; font-weight: bold;">{sum(1 for i in issues if i['severity'] == 'CRITICAL')}</span></p>
         </div>
         
         <h2>🚨 Detail Masalah</h2>
@@ -298,4 +342,4 @@ class Reporter:
             f.write(html_content)
         
         print(f"{COLORS['GREEN']}[✓] Laporan HTML disimpan: {filepath}{COLORS['RESET']}")
-        return filepath
+        return str(filepath)

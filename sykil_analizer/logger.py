@@ -1,24 +1,26 @@
+"""
+SYKIL Logger Module
+Sistem logging terpusat dengan konfigurasi dari .env
+"""
+
 import logging
 import os
 import sys
 from logging.handlers import RotatingFileHandler
-from datetime import datetime
+from pathlib import Path
 
-# Folder logs
-LOG_DIR = "logs"
-os.makedirs(LOG_DIR, exist_ok=True)
+# Import config (akan di-load nanti setelah config.py siap)
+# Untuk menghindari circular import, kita load lazy
 
-# Logger name untuk SYKIL
-LOGGER_NAME = "sykil"
 
 # ANSI Colors untuk console
 class ColorFormatter(logging.Formatter):
     COLORS = {
-        'DEBUG': '\033[94m',     # Blue
-        'INFO': '\033[92m',      # Green
-        'WARNING': '\033[93m',   # Yellow
-        'ERROR': '\033[91m',     # Red
-        'CRITICAL': '\033[95m',  # Magenta
+        'DEBUG': '\033[94m',
+        'INFO': '\033[92m',
+        'WARNING': '\033[93m',
+        'ERROR': '\033[91m',
+        'CRITICAL': '\033[95m',
     }
     RESET = '\033[0m'
     
@@ -26,6 +28,20 @@ class ColorFormatter(logging.Formatter):
         color = self.COLORS.get(record.levelname, self.RESET)
         record.levelname = f"{color}{record.levelname}{self.RESET}"
         return super().format(record)
+
+
+def _get_log_dir():
+    """Lazy load log directory dari config"""
+    try:
+        from config import get_log_dir
+        return get_log_dir()
+    except ImportError:
+        # Fallback jika config belum ada
+        return Path("C:/Sykil_Security_Analyzer/logs")
+
+
+# Logger name untuk SYKIL
+LOGGER_NAME = "sykil"
 
 
 def setup_logger(name=LOGGER_NAME, log_level=logging.INFO):
@@ -38,7 +54,7 @@ def setup_logger(name=LOGGER_NAME, log_level=logging.INFO):
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     
-    # Hindari duplicate handler jika dipanggil berkali-kali
+    # Hindari duplicate handler
     if logger.handlers:
         return logger
     
@@ -55,7 +71,7 @@ def setup_logger(name=LOGGER_NAME, log_level=logging.INFO):
     )
     
     # =========================================================================
-    # 1. Console Handler (output ke terminal dengan warna)
+    # 1. Console Handler
     # =========================================================================
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
@@ -63,23 +79,26 @@ def setup_logger(name=LOGGER_NAME, log_level=logging.INFO):
     logger.addHandler(console_handler)
     
     # =========================================================================
-    # 2. File Handler - sykil.log (semua log, rotasi otomatis)
+    # 2. File Handler - sykil.log (semua log)
     # =========================================================================
-    app_log_path = os.path.join(LOG_DIR, "sykil.log")
+    log_dir = _get_log_dir()
+    log_dir.mkdir(parents=True, exist_ok=True)
+    
+    app_log_path = log_dir / "sykil.log"
     app_handler = RotatingFileHandler(
         app_log_path,
         maxBytes=5 * 1024 * 1024,  # 5 MB
         backupCount=5,
         encoding='utf-8'
     )
-    app_handler.setLevel(logging.DEBUG)
+    app_handler.setLevel(logging.INFO)
     app_handler.setFormatter(file_formatter)
     logger.addHandler(app_handler)
     
     # =========================================================================
     # 3. File Handler - sykil_error.log (hanya ERROR & CRITICAL)
     # =========================================================================
-    error_log_path = os.path.join(LOG_DIR, "sykil_error.log")
+    error_log_path = log_dir / "sykil_error.log"
     error_handler = RotatingFileHandler(
         error_log_path,
         maxBytes=5 * 1024 * 1024,
@@ -132,16 +151,16 @@ def setup_global_exception_handler():
 # =============================================================================
 def view_logs(log_type="app", lines=50):
     """Lihat isi log terakhir"""
-    # Map tipe log ke nama file
     log_file_map = {
         'app': 'sykil.log',
         'error': 'sykil_error.log'
     }
     
     log_filename = log_file_map.get(log_type, 'sykil.log')
-    log_file = os.path.join(LOG_DIR, log_filename)
+    log_dir = _get_log_dir()
+    log_file = log_dir / log_filename
     
-    if not os.path.exists(log_file):
+    if not log_file.exists():
         print(f"[!] File log tidak ditemukan: {log_file}")
         return
     

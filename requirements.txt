@@ -1,3 +1,0 @@
-# Tidak ada dependensi eksternal yang wajib, 
-# karena semua library yang digunakan (os, re, json, argparse, logging) adalah bawaan Python.
-# Anda bisa membiarkan file ini kosong, atau menghapus file ini sama sekali.
