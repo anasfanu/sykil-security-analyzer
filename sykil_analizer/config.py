@@ -1,19 +1,33 @@
 """
 SYKIL Configuration Manager
-Mengelola konfigurasi dari file .env
+Mengelola konfigurasi dari file .env dengan dukungan cross-platform
 """
 
 import os
+import platform
 from pathlib import Path
 from logger import get_logger
 
 logger = get_logger("config")
 
-# Default base directory
-DEFAULT_BASE_DIR = Path("C:/Sykil_Security_Analyzer")
-
 # Nama file .env
 ENV_FILE_NAME = ".env"
+
+
+def get_default_base_dir() -> Path:
+    """
+    Dapatkan default base directory berdasarkan OS.
+    - Windows: C:\Sykil_Security_Analyzer
+    - Linux/Mac: ~/.sykil (di home directory user)
+    """
+    system = platform.system()
+    
+    if system == "Windows":
+        # Windows: C:\Sykil_Security_Analyzer
+        return Path("C:/Sykil_Security_Analyzer")
+    else:
+        # Linux/Mac: ~/.sykil (hidden folder di home directory)
+        return Path.home() / ".sykil"
 
 
 def get_base_dir() -> Path:
@@ -26,15 +40,15 @@ def get_base_dir() -> Path:
     # Cek .env di current working directory
     cwd_env = Path.cwd() / ENV_FILE_NAME
     if cwd_env.exists():
-        return DEFAULT_BASE_DIR
+        return get_default_base_dir()
     
     # Cek .env di base directory default
-    default_env = DEFAULT_BASE_DIR / ENV_FILE_NAME
+    default_env = get_default_base_dir() / ENV_FILE_NAME
     if default_env.exists():
-        return DEFAULT_BASE_DIR
+        return get_default_base_dir()
     
-    # Default
-    return DEFAULT_BASE_DIR
+    # Default berdasarkan OS
+    return get_default_base_dir()
 
 
 def ensure_env_file() -> Path:
@@ -51,12 +65,12 @@ def ensure_env_file() -> Path:
     except PermissionError:
         logger.error(f"Tidak punya izin untuk membuat folder: {base_dir}")
         # Fallback ke current directory
-        base_dir = Path.cwd() / "Sykil_Security_Analyzer"
+        base_dir = Path.cwd() / ".sykil"
         base_dir.mkdir(parents=True, exist_ok=True)
         env_path = base_dir / ENV_FILE_NAME
     except Exception as e:
         logger.error(f"Error membuat base directory: {e}")
-        base_dir = Path.cwd() / "Sykil_Security_Analyzer"
+        base_dir = Path.cwd() / ".sykil"
         base_dir.mkdir(parents=True, exist_ok=True)
         env_path = base_dir / ENV_FILE_NAME
     
@@ -171,6 +185,7 @@ def print_config_info():
     print(f"{'='*70}")
     print(f"📂 Konfigurasi SYKIL")
     print(f"{'='*70}")
+    print(f"  OS Detected    : {platform.system()}")
     print(f"  Base Directory : {get_base_dir()}")
     print(f"  Output Dir     : {get_output_dir()}")
     print(f"  Backup Dir     : {get_backup_dir()}")
