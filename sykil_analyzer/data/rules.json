@@ -2,24 +2,24 @@
   "version": "2.1.1",
   "rules": [
     {
-      "id": "SEC-001",
-      "severity": "CRITICAL",
-      "kategori": "Hardcoded Credentials",
-      "pattern": "(?i)(password|passwd|secret|api_key|token|db_password|aws_secret|private_key)\\s*[=:]\\s*['\"][a-zA-Z0-9_\\-\\@\\#\\$]{4,}['\"]",
-      "info": "Kredensial sensitif ditulis langsung di kode.",
-      "solusi": "Pindahkan ke file .env dan gunakan getenv() atau process.env.",
-      "auto_fixable": true,
-      "fix_description": "Migrate ke .env file (auto-create jika belum ada)"
-    },
+  "id": "SEC-001",
+  "severity": "CRITICAL",
+  "kategori": "Hardcoded Credentials",
+  "pattern": "(?i)\\$?(password|passwd|secret|api_key|token|db_password|aws_secret|private_key)\\s*[=:]\\s*['\"][a-zA-Z0-9_\\-\\@\\#\\$]{4,}['\"]",
+  "info": "Kredensial sensitif ditulis langsung di kode.",
+  "solusi": "Pindahkan ke file .env dan gunakan getenv() atau process.env.",
+  "auto_fixable": true,
+  "fix_description": "Migrate ke .env file (auto-create jika belum ada)"
+},
     {
-      "id": "SEC-002",
-      "severity": "HIGH",
-      "kategori": "SQL Injection",
-      "pattern": "(?i)(SELECT|INSERT|UPDATE|DELETE|DROP)\\s+.*?\\$[\\w\\->]+.*?(FROM|WHERE|INTO|SET|VALUES)",
-      "info": "Variabel langsung disisipkan ke query SQL tanpa sanitasi.",
-      "solusi": "Gunakan Prepared Statements (PDO/MySQLi) atau parameterized queries.",
-      "auto_fixable": false
-    },
+  "id": "SEC-002",
+  "severity": "HIGH",
+  "kategori": "SQL Injection",
+  "pattern": "(?i)(\\$\\w+\\s*=\\s*[\"'].*(?:SELECT|INSERT|UPDATE|DELETE)\\s+.*[\"']|\\$_(GET|POST|REQUEST|COOKIE)\\s*\\[.*?\\].*(?:query|execute))",
+  "info": "Query SQL dengan input user langsung atau query string yang dieksekusi tanpa prepared statement.",
+  "solusi": "Gunakan prepared statements dengan parameter binding. Jangan concat input user ke query string.",
+  "auto_fixable": false
+},
     {
       "id": "SEC-003",
       "severity": "HIGH",

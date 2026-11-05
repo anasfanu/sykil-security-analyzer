@@ -7,8 +7,11 @@
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"></a>
   <a href="./LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
-  <a href="https://fury.io"><img src="https://img.shields.io/badge/version-1.0.0-orange.svg" alt="Version"></a>
+  <a href=""><img src="https://img.shields.io/badge/version-1.0.0-orange.svg" alt="Version"></a>
+  <a href=""><img src="https://img.shields.io/badge/tests-18%20passed-brightgreen.svg" alt="Tests"></a>
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code Style"></a>
 </p>
+
 
 ---
 
@@ -80,6 +83,44 @@ sykil --undo <session_id>
 | **Configuration** | Debug Mode, Missing Security Headers, CORS |
 | **Modern Framework** | React XSS, Next.js SSRF, Django SQLi, Laravel |
 
+## 🧪 Development & Testing
+
+### Setup Development Environment
+
+```bash
+# Clone repository
+git clone https://github.com/anasfanu/sykil-security-analyzer.git
+cd sykil-security-analyzer
+
+# Install dalam development mode
+pip install -e .
+
+# Install pytest untuk testing
+pip install pytest
+```
+### Menjalankan Tests
+```bash
+# Jalankan semua tests
+pytest tests/ -v
+
+# Jalankan test tertentu
+pytest tests/test_no_false_positive.py -v
+pytest tests/test_rules_detection.py -v
+
+# Jalankan test dengan detail output
+pytest tests/ -v -s
+
+# Jalankan test dengan output xml 
+pytest tests/ --junitxml=test-results.xml
+```
+### Menambah Rule Baru
+
+1. Tambah rule di sykil_analyzer/data/rules.json
+2. Tambah test di tests/test_rules_detection.py
+3. Jalankan test:
+```bash
+pytest tests/test_rules_detection.py::test_sec_054_detects_ssrf -v
+```
 ## 📄 Lisensi
 
 Didistribusikan di bawah **MIT License** [LICENSE.md](./LICENSE.md).

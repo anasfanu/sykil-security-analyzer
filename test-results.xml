@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="18" time="30.375" timestamp="2026-11-06T00:40:00.404722+07:00" hostname="LAPTOP-DK17K82J"><testcase classname="tests.test_no_false_positive" name="test_no_false_positive_on_fixer" time="11.308" /><testcase classname="tests.test_no_false_positive" name="test_no_false_positive_on_config" time="0.306" /><testcase classname="tests.test_no_false_positive" name="test_no_false_positive_on_scanner" time="0.897" /><testcase classname="tests.test_no_false_positive" name="test_no_false_positive_on_reporter" time="1.410" /><testcase classname="tests.test_no_false_positive" name="test_no_false_positive_on_logger" time="0.268" /><testcase classname="tests.test_no_false_positive" name="test_no_false_positive_on_cli" time="0.648" /><testcase classname="tests.test_no_false_positive" name="test_no_false_positive_on_entire_package" time="14.754" /><testcase classname="tests.test_rules_detection" name="test_sec_002_detects_sql_injection" time="0.005"><failure message="AssertionError: &#10;  &#10;  ❌ Rule SEC-002 TIDAK terdeteksi di sql_injection_vuln.php.sample!&#10;  All issues detected: []&#10;  &#10;  File sample: C:\Users\ACER\sykil-security-analyzer\tests\samples\sql_injection_vuln.php.sample&#10;  &#10;assert 0 &gt; 0&#10; +  where 0 = len([])">def test_sec_002_detects_sql_injection():
+        """Test: SQL Injection harus terdeteksi"""
+&gt;       assert_rule_detected_in_sample('sql_injection_vuln.php.sample', 'SEC-002')
+
+tests\test_rules_detection.py:74: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+filename = 'sql_injection_vuln.php.sample', rule_id = 'SEC-002'
+
+    def assert_rule_detected_in_sample(filename: str, rule_id: str):
+        """Assert bahwa rule tertentu TERDETEKSI di file sample"""
+        issues = scan_sample_file(filename)
+        rule_issues = [i for i in issues if i['id'] == rule_id]
+    
+&gt;       assert len(rule_issues) &gt; 0, (
+            f"\n\n❌ Rule {rule_id} TIDAK terdeteksi di {filename}!\n"
+            f"All issues detected: {[i['id'] for i in issues]}\n"
+            f"\nFile sample: {SAMPLES_DIR / filename}\n"
+        )
+E       AssertionError: 
+E         
+E         ❌ Rule SEC-002 TIDAK terdeteksi di sql_injection_vuln.php.sample!
+E         All issues detected: []
+E         
+E         File sample: C:\Users\ACER\sykil-security-analyzer\tests\samples\sql_injection_vuln.php.sample
+E         
+E       assert 0 &gt; 0
+E        +  where 0 = len([])
+
+tests\test_rules_detection.py:49: AssertionError</failure></testcase><testcase classname="tests.test_rules_detection" name="test_sec_002_no_false_positive_on_safe_query" time="0.004" /><testcase classname="tests.test_rules_detection" name="test_sec_003_detects_xss" time="0.020" /><testcase classname="tests.test_rules_detection" name="test_sec_003_no_false_positive_on_sanitized" time="0.005" /><testcase classname="tests.test_rules_detection" name="test_sec_004_detects_eval" time="0.004" /><testcase classname="tests.test_rules_detection" name="test_sec_004_no_false_positive_on_comment" time="0.012" /><testcase classname="tests.test_rules_detection" name="test_sec_001_detects_hardcoded_password" time="0.019" /><testcase classname="tests.test_rules_detection" name="test_sec_025_detects_console_log" time="0.003" /><testcase classname="tests.test_rules_detection" name="test_sec_009_detects_md5" time="0.005" /><testcase classname="tests.test_rules_detection" name="test_sec_009_no_false_positive_on_password_hash" time="0.061" /><testcase classname="tests.test_rules_detection" name="test_sec_005_detects_command_injection" time="0.006" /></testsuite></testsuites>

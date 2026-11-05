@@ -8,8 +8,8 @@ import re
 import json
 from pathlib import Path
 from typing import List, Dict, Tuple, Callable, Optional
-from logger import get_logger
-from pathlib import Path
+from .logger import get_logger
+
 
 # Helper untuk akses file data dari dalam package
 def _get_data_path(filename: str) -> Path:
@@ -131,19 +131,31 @@ class SecurityScanner:
         return in_docstring
     
     def _is_string_literal_only(self, line: str) -> bool:
-        '''
-        Cek apakah baris hanya berisi string literal Python (termasuk dalam return statement).
-        Ini mencegah false positive dari string template yang mengandung kata kunci berbahaya.
-        '''
+        """
+        Cek apakah baris hanya berisi string literal Python.
+    
+        PENTING: Pattern ini TIDAK boleh match assignment yang mengandung
+        kata kunci keamanan seperti password, secret, query, dll.
+        """
         stripped = line.strip()
         if re.match(r'^return\s+[\{\[].*[\'"]', stripped):
             return True
         if re.match(r'^return\s+[\'"]', stripped):
             return True
         if re.match(r'^[^=]+=\s*f?[\'"]', stripped):
+            var_name = stripped.split('=')[0].strip().lower()
+            security_keywords = [
+                'password', 'passwd', 'secret', 'api_key', 'token', 
+                'db_password', 'aws_secret', 'private_key', 'query',
+                'sql', 'select', 'insert', 'update', 'delete'
+            ]
+            if any(keyword in var_name for keyword in security_keywords):
+                return False
             return True
+    
         if re.match(r'^[\'"][^\'"]*[\'"]$', stripped):
             return True
+    
         if re.match(r'^f[\'"][^\'"]*[\'"]$', stripped):
             return True
         if re.match(r'^[\'"][^\'"]*[\'"]\s*:', stripped):

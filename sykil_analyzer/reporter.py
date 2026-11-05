@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 from typing import List, Dict
 from pathlib import Path
-from pathlib import Path
+
 
 def _get_data_path(filename: str) -> Path:
     """Dapatkan path absolut ke file data dalam package"""

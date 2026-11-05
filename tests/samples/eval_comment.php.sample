@@ -1,0 +1,6 @@
+<?php
+// eval($code); // ini sudah di-comment out, aman
+// eval($_GET['code']); // tidak akan dieksekusi
+$x = 1;
+$y = 2;
+?>

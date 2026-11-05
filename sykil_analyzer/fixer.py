@@ -10,7 +10,7 @@ import shutil
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional, Callable
 from pathlib import Path
-from logger import get_logger
+from .logger import get_logger
 
 logger = get_logger("fixer")
 

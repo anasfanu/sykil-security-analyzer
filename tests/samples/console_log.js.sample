@@ -1,0 +1,2 @@
+console.log("debug info");
+console.error("error message");

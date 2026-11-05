@@ -6,7 +6,7 @@ Mengelola konfigurasi dari file .env dengan dukungan cross-platform
 import os
 import platform
 from pathlib import Path
-from logger import get_logger
+from .logger import get_logger
 
 logger = get_logger("config")
 
