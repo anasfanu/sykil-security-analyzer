@@ -15,7 +15,7 @@
   "id": "SEC-002",
   "severity": "HIGH",
   "kategori": "SQL Injection",
-  "pattern": "(?i)(\\$\\w+\\s*=\\s*[\"'].*(?:SELECT|INSERT|UPDATE|DELETE)\\s+.*[\"']|\\$_(GET|POST|REQUEST|COOKIE)\\s*\\[.*?\\].*(?:query|execute))",
+  "pattern": "(?i)(query|execute|prepare)\\s*\\([^)]*\\$_(GET|POST|REQUEST|COOKIE)|\\$_(GET|POST|REQUEST|COOKIE)[^;]*?(query|execute|prepare)",
   "info": "Query SQL dengan input user langsung atau query string yang dieksekusi tanpa prepared statement.",
   "solusi": "Gunakan prepared statements dengan parameter binding. Jangan concat input user ke query string.",
   "auto_fixable": false

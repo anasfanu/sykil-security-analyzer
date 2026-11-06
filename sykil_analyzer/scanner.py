@@ -133,34 +133,41 @@ class SecurityScanner:
     def _is_string_literal_only(self, line: str) -> bool:
         """
         Cek apakah baris hanya berisi string literal Python.
-    
-        PENTING: Pattern ini TIDAK boleh match assignment yang mengandung
-        kata kunci keamanan seperti password, secret, query, dll.
+        Pattern ini dirancang untuk TIDAK skip assignment PHP (yang diawali $).
         """
         stripped = line.strip()
+        
+        # Pattern 1: Return statement dengan dict/list yang mengandung string
         if re.match(r'^return\s+[\{\[].*[\'"]', stripped):
             return True
+        
+        # Pattern 2: Return statement dengan string literal
         if re.match(r'^return\s+[\'"]', stripped):
             return True
-        if re.match(r'^[^=]+=\s*f?[\'"]', stripped):
-            var_name = stripped.split('=')[0].strip().lower()
-            security_keywords = [
-                'password', 'passwd', 'secret', 'api_key', 'token', 
-                'db_password', 'aws_secret', 'private_key', 'query',
-                'sql', 'select', 'insert', 'update', 'delete'
-            ]
-            if any(keyword in var_name for keyword in security_keywords):
-                return False
+        
+        # Pattern 3: Python assignment ke string atau f-string
+        # Matches: var = "str", var = f"str", self.var = 'str', arr[0] = "str"
+        # TIDAK Match PHP/Ruby: $var = "str", @var = "str"
+        if re.match(r'^[a-zA-Z_]\w*(?:\.\w+|\[\w+\])*\s*=\s*(?:f)?[\'"]', stripped):
             return True
-    
-        if re.match(r'^[\'"][^\'"]*[\'"]$', stripped):
+        
+        # Pattern 4: Python assignment ke list/dict yang diawali bracket
+        # Matches: var = ["str"], var = {"key": "str"}
+        # Ini mencegah false positive pada definisi list seperti dangerous_keywords = [...]
+        if re.match(r'^[a-zA-Z_]\w*(?:\.\w+|\[\w+\])*\s*=\s*[\{\[]', stripped):
             return True
-    
-        if re.match(r'^f[\'"][^\'"]*[\'"]$', stripped):
+        
+        # Pattern 5: Baris yang HANYA terdiri dari string literal (misal: di dalam list)
+        # Matches: "string", 'string', "string", 'string'
+        # Ini mencegah false positive pada baris seperti: 'eval(', 'exec(', 'system('
+        if re.match(r'^(?:\s*[\'"][^\'"]*[\'"]\s*,?)+\s*$', stripped):
             return True
-        if re.match(r'^[\'"][^\'"]*[\'"]\s*:', stripped):
+        
+        # Pattern 6: Dict key-value pair
+        # Matches: "key": "value",
+        if re.match(r'^[\'"][^\'"]*[\'"]\s*:\s*[\'"][^\'"]*[\'"]\s*,?\s*$', stripped):
             return True
-    
+        
         return False
     
     def _has_nosec_comment(self, line: str) -> bool:
