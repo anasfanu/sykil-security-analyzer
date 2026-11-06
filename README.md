@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <a href="https://paypal.me/anasfanu"><img src="https://img.shields.io/badge/Sponsor-SYKIL-purple?logo=githubsponsors" alt="Sponsor SYKIL"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"></a>
   <a href="./LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
   <a href=""><img src="https://img.shields.io/badge/version-1.0.0-orange.svg" alt="Version"></a>
@@ -119,7 +120,7 @@ pytest tests/ --junitxml=test-results.xml
 2. Tambah test di tests/test_rules_detection.py
 3. Jalankan test:
 ```bash
-pytest tests/test_rules_detection.py::test_sec_054_detects_ssrf -v
+pytest tests/test_rules_detection.py::test_sec_0xx_detects_ssrf -v
 ```
 ## 📄 Lisensi
 

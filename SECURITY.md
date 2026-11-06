@@ -14,8 +14,8 @@ Jika Anda menemukan kerentanan keamanan di **SYKIL Security Analyzer** itu sendi
 ### Cara Report
 
 1. **JANGAN** buat public issue di GitHub
-2. Email ke: **security@anasfanu.com** (atau buat email khusus)
-3. Atau gunakan [GitHub Security Advisory](https://github.com/anasfanu/sykil-security-analyzer/security/advisories/new)
+2. Gunakan [Github Discussions](https://github.com/anasfanu/sykil-security-analyzer/discussions)
+3. Atau bisa menggunakan [GitHub Security Advisory](https://github.com/anasfanu/sykil-security-analyzer/security/advisories/new)
 
 ### Informasi yang Perlu Disertakan
 
